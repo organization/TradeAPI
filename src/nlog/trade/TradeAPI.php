@@ -148,11 +148,11 @@ LICENSE;
 				CompoundTag::create()
 						->setTag("Recipes", $recipeList->toNBT())
 						->setTag("TierExpRequirements", new ListTag([
-								CompoundTag::create()->setInt(0, 0),
-								CompoundTag::create()->setInt(1, 10),
-								CompoundTag::create()->setInt(2, 60),
-								CompoundTag::create()->setInt(3, 160),
-								CompoundTag::create()->setInt(4, 310),
+								CompoundTag::create()->setInt("0", 0),
+								CompoundTag::create()->setInt("1", 10),
+								CompoundTag::create()->setInt("2", 60),
+								CompoundTag::create()->setInt("3", 160),
+								CompoundTag::create()->setInt("4", 310),
 						])) //TODO: move to merchant recipes list
 		));
 
