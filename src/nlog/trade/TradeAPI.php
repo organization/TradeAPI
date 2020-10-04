@@ -76,36 +76,6 @@ class TradeAPI extends PluginBase {
 	private $process = [];
 
 	protected function onLoad() {
-		if (!file_exists($this->getDataFolder() . "LICENSE")) {
-			//꼬우면안쓰면댐
-			echo  <<<LICENSE
-
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU Affero General Public License as published
-  by the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-
-
-LICENSE;
-
-			$this->getLogger()->notice("Do you accept the License? (Y/N) ");
-
-			while (1) {
-				if (($txt = trim((string) fgets(STDIN))) !== null) {
-					if (strtoupper($txt) === "Y") {
-						$this->saveResource("LICENSE");
-						break;
-					}else{
-						$this->getLogger()->error("You have to accept the AGPL license to continue using TradeAPI.");
-						$this->getServer()->getPluginManager()->disablePlugin($this);
-						return;
-					}
-				}
-
-				usleep(500);
-			}
-		}
-
 		self::$instance = $this;
 	}
 
