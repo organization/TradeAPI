@@ -22,7 +22,7 @@
  * @name TradeTest
  * @main       nlog\TradeTest
  * @author     nlog
- * @api        4.0.0
+ * @api        3.0.0
  * @version    1.0.0
  * @softDepend TradeAPI
  */
@@ -36,32 +36,33 @@ use nlog\trade\TradeAPI;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\command\PluginCommand;
-use pocketmine\item\enchantment\Enchantment;
-use pocketmine\item\enchantment\EnchantmentInstance;
 use pocketmine\item\ItemFactory;
 use pocketmine\item\ItemIds;
-use pocketmine\player\Player;
+use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
 
-class TradeTest extends PluginBase {
+class TradeTest extends PluginBase{
 
 	/** @var MerchantRecipeList */
 	private $recipes;
 
-	public function onEnable() {
-		$this->getServer()->getCommandMap()->register("trade", new PluginCommand("trade", $this, $this));
+	public function onEnable(){
+		$this->getServer()->getCommandMap()->register("trade", new PluginCommand("trade", $this));
 		$this->recipes = new MerchantRecipeList(
-				new MerchantRecipe(ItemFactory::get(ItemIds::ROTTEN_FLESH, 0, 32), ItemFactory::get(ItemIds::EMERALD), null, 0),
-				new MerchantRecipe(ItemFactory::get(ItemIds::GOLD_NUGGET, 0, 32), ItemFactory::get(ItemIds::EMERALD), null, 0),
-				new MerchantRecipe(ItemFactory::get(ItemIds::COAL, 0, 16), ItemFactory::get(ItemIds::EMERALD), null, 0),
-				new MerchantRecipe(ItemFactory::get(ItemIds::DIAMOND, 0, 16), ItemFactory::get(ItemIds::EMERALD)->setCustomName("§bTrade"), null, 1),
-				new MerchantRecipe(ItemFactory::get(ItemIds::EMERALD, 0, 52), ItemFactory::get(ItemIds::ENCHANTED_BOOK)->addEnchantment(new EnchantmentInstance(Enchantment::PROTECTION(), 4)), ItemFactory::get(ItemIds::BOOK), 2),
-				new MerchantRecipe(ItemFactory::get(ItemIds::EMERALD, 0, 64), ItemFactory::get(ItemIds::BOOK)->addEnchantment(new EnchantmentInstance(Enchantment::MENDING(), 0)), ItemFactory::get(ItemIds::BOOK), 3),
+			new MerchantRecipe(
+				ItemFactory::get(ItemIds::ROTTEN_FLESH, 0, 32),
+				ItemFactory::get(ItemIds::EMERALD), null, 0),
+			new MerchantRecipe(ItemFactory::get(ItemIds::GOLD_NUGGET, 0, 32),
+				ItemFactory::get(ItemIds::EMERALD), null, 0),
+			new MerchantRecipe(ItemFactory::get(ItemIds::COAL, 0, 16),
+				ItemFactory::get(ItemIds::EMERALD), null, 0),
+			new MerchantRecipe(ItemFactory::get(ItemIds::DIAMOND, 0, 16),
+				ItemFactory::get(ItemIds::EMERALD)->setCustomName("§bTrade"), null, 1)
 		);
 	}
 
-	public function onCommand(CommandSender $sender, Command $command, string $label, array $args): bool {
-		if ($sender instanceof Player && $sender->isOp()) {
+	public function onCommand(CommandSender $sender, Command $command, string $label, array $args) : bool{
+		if($sender instanceof Player && $sender->isOp()){
 			$prop = new TraderProperties();
 			$prop->maxTradeTier = 3;
 			$prop->tradeTier = 2;

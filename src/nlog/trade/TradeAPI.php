@@ -25,40 +25,36 @@ use nlog\trade\listener\InventoryListener;
 use nlog\trade\listener\TransactionInjector;
 use nlog\trade\merchant\MerchantRecipeList;
 use nlog\trade\merchant\TraderProperties;
-use pocketmine\command\CommandReader;
 use pocketmine\entity\Entity;
-use pocketmine\entity\EntityFactory;
+use pocketmine\entity\EntityIds;
+use pocketmine\nbt\NetworkLittleEndianNBTStream;
 use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\nbt\tag\IntTag;
 use pocketmine\nbt\tag\ListTag;
-use pocketmine\nbt\TreeRoot;
 use pocketmine\network\mcpe\protocol\AddActorPacket;
 use pocketmine\network\mcpe\protocol\ContainerClosePacket;
 use pocketmine\network\mcpe\protocol\RemoveActorPacket;
-use pocketmine\network\mcpe\protocol\types\entity\EntityLegacyIds;
-use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
-use pocketmine\network\mcpe\protocol\types\entity\IntMetadataProperty;
-use pocketmine\network\mcpe\protocol\types\inventory\WindowTypes;
+use pocketmine\network\mcpe\protocol\types\WindowTypes;
 use pocketmine\network\mcpe\protocol\UpdateTradePacket;
-use pocketmine\network\mcpe\serializer\NetworkNbtSerializer;
-use pocketmine\player\Player;
+use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
 
-class TradeAPI extends PluginBase {
+class TradeAPI extends PluginBase{
 
 	/** @var PlayerTradeInventory */
 	private static $inventory = [];
 
-	public static function addInventory(Player $player): void {
+	public static function addInventory(Player $player) : void{
 		self::$inventory[$player->getName()] = new PlayerTradeInventory($player);
 	}
 
-	public static function removeInventory(Player $player): void {
-		if (isset(self::$inventory[$player->getName()])) {
+	public static function removeInventory(Player $player) : void{
+		if(isset(self::$inventory[$player->getName()])){
 			unset(self::$inventory[$player->getName()]);
 		}
 	}
 
-	public static function getInventory(Player $player): ?PlayerTradeInventory {
+	public static function getInventory(Player $player) : ?PlayerTradeInventory{
 		return self::$inventory[$player->getName()] ?? null;
 	}
 
@@ -68,42 +64,42 @@ class TradeAPI extends PluginBase {
 	/**
 	 * @return TradeAPI|null
 	 */
-	public static function getInstance(): ?TradeAPI {
+	public static function getInstance() : ?TradeAPI{
 		return self::$instance;
 	}
 
 	/** @var TraderProperties[] */
 	private $process = [];
 
-	protected function onLoad() {
+	public function onLoad(){
 		self::$instance = $this;
 	}
 
-	protected function onEnable() {
+	public function onEnable(){
 		$this->getServer()->getPluginManager()->registerEvents(new InventoryListener($this), $this);
 		$this->getServer()->getPluginManager()->registerEvents(new TransactionInjector(), $this);
 	}
 
-	protected function onDisable() {
-		foreach (self::$inventory as $name => $inventory) {
-			if ($this->getServer()->getPlayerExact($name) instanceof Player) {
+	public function onDisable(){
+		foreach(self::$inventory as $name => $inventory){
+			if($this->getServer()->getPlayerExact($name) instanceof Player){
 				$this->doCloseInventory($inventory);
 			}
 		}
 	}
 
-	public function isTrading(Player $player): bool {
+	public function isTrading(Player $player) : bool{
 		return isset($this->process[$player->getName()]);
 	}
 
 	/**
 	 * Send Trade UI to Player
 	 *
-	 * @param  Player              $player
-	 * @param  MerchantRecipeList  $recipeList
-	 * @param  TraderProperties    $properties
+	 * @param Player             $player
+	 * @param MerchantRecipeList $recipeList
+	 * @param TraderProperties   $properties
 	 */
-	public function sendWindow(Player $player, MerchantRecipeList $recipeList, TraderProperties $properties): void {
+	public function sendWindow(Player $player, MerchantRecipeList $recipeList, TraderProperties $properties) : void{
 		$this->closeWindow($player);
 
 		$pk = new UpdateTradePacket();
@@ -113,62 +109,70 @@ class TradeAPI extends PluginBase {
 		$pk->isWilling = true;
 		$pk->tradeTier = $properties->tradeTier;
 		$pk->playerEid = $player->getId();
-
-		$pk->offers = (new NetworkNbtSerializer())->write(new TreeRoot(
-				CompoundTag::create()
-						->setTag("Recipes", $recipeList->toNBT())
-						->setTag("TierExpRequirements", new ListTag([
-								CompoundTag::create()->setInt("0", 0),
-								CompoundTag::create()->setInt("1", 10),
-								CompoundTag::create()->setInt("2", 60),
-								CompoundTag::create()->setInt("3", 160),
-								CompoundTag::create()->setInt("4", 310),
-						])) //TODO: move to merchant recipes list
-		));
+		$pk->offers = (new NetworkLittleEndianNBTStream())->write(new CompoundTag("", [
+			$recipeList->toNBT(),
+			new ListTag("TierExpRequirements", [
+				new CompoundTag("", [
+					new IntTag("0", 0)
+				]),
+				new CompoundTag("", [
+					new IntTag("1", 10)
+				]),
+				new CompoundTag("", [
+					new IntTag("2", 60)
+				]),
+				new CompoundTag("", [
+					new IntTag("3", 160)
+				]),
+				new CompoundTag("", [
+					new IntTag("4", 310)
+				])
+			])
+		]));
 
 		$metadata = [
-				EntityMetadataProperties::TRADE_TIER         => new IntMetadataProperty($pk->tradeTier),
-				EntityMetadataProperties::TRADE_XP           => new IntMetadataProperty($properties->xp),
-				EntityMetadataProperties::MAX_TRADE_TIER     => new IntMetadataProperty($properties->maxTradeTier),
-				EntityMetadataProperties::TRADING_PLAYER_EID => new IntMetadataProperty($player->getId())
+			Entity::DATA_TRADE_TIER => [Entity::DATA_TYPE_INT, $pk->tradeTier],
+			Entity::DATA_TRADE_XP => [Entity::DATA_TYPE_INT, $properties->xp],
+			Entity::DATA_MAX_TRADE_TIER => [Entity::DATA_TYPE_INT, $properties->maxTradeTier],
+			Entity::DATA_TRADING_PLAYER_EID => [Entity::DATA_TYPE_INT, $player->getId()]
 		];
 
-		if ($properties->entity instanceof Entity) {
+		if($properties->entity instanceof Entity){
 			$pk->traderEid = $properties->entity->getId();
 
-			foreach ($metadata as $k => $metadataProperty) {
-				$properties->entity->getNetworkProperties()->setInt($k, $metadataProperty->getValue());
+			foreach($metadata as $k => $metadataProperty){
+				$properties->entity->getDataPropertyManager()->setInt($k, $metadataProperty[1]);
 			}
-		} else {
+		}else{
 			$apk = new AddActorPacket();
-			$apk->type = EntityLegacyIds::NPC;
+			$apk->type = AddActorPacket::LEGACY_ID_MAP_BC[EntityIds::NPC];
 			$apk->position = $player->getPosition()->add(0, -2, 0);
 			$apk->metadata = $metadata;
 
-			$properties->eid = $apk->entityRuntimeId = $pk->traderEid = EntityFactory::nextRuntimeId();
+			$properties->eid = $apk->entityRuntimeId = $pk->traderEid = Entity::$entityCount++;
 
-			$player->getNetworkSession()->sendDataPacket($apk);
+			$player->sendDataPacket($apk);
 		}
 
 		$this->process[$player->getName()] = clone $properties;
 
-		$player->getNetworkSession()->sendDataPacket($pk);
+		$player->sendDataPacket($pk);
 	}
 
-	public function closeWindow(Player $player, bool $sendPacket = true): void {
-		if (($prop = $this->process[$player->getName()] ?? null) instanceof TraderProperties) {
-			if ($sendPacket) {
+	public function closeWindow(Player $player, bool $sendPacket = true) : void{
+		if(($prop = $this->process[$player->getName()] ?? null) instanceof TraderProperties){
+			if($sendPacket){
 				$pk = new ContainerClosePacket();
 				$pk->windowId = WindowTypes::TRADING;
-				$player->getNetworkSession()->sendDataPacket($pk);
+				$player->sendDataPacket($pk);
 			}
 
-			if ($prop->entity instanceof Entity) {
-				$prop->entity->getNetworkProperties()->setInt(EntityMetadataProperties::TRADING_PLAYER_EID, -1);
-			} else {
+			if($prop->entity instanceof Entity){
+				$prop->entity->getDataPropertyManager()->setInt(Entity::DATA_TRADING_PLAYER_EID, -1);
+			}else{
 				$pk = new RemoveActorPacket();
 				$pk->entityUniqueId = $prop->eid;
-				$player->getNetworkSession()->sendDataPacket($pk);
+				$player->sendDataPacket($pk);
 			}
 
 			$this->doCloseInventory(self::getInventory($player));
@@ -177,13 +181,13 @@ class TradeAPI extends PluginBase {
 		}
 	}
 
-	public function doCloseInventory(PlayerTradeInventory $inventory): void {
-		for ($slot = 0; $slot <= 1; $slot++) {
+	public function doCloseInventory(PlayerTradeInventory $inventory) : void{
+		for($slot = 0; $slot <= 1; $slot++){
 			$item = $inventory->getItem($slot);
 
-			if ($inventory->getHolder()->getInventory()->canAddItem($item)) {
+			if($inventory->getHolder()->getInventory()->canAddItem($item)){
 				$inventory->getHolder()->getInventory()->addItem($item);
-			} else {
+			}else{
 				$inventory->getHolder()->dropItem($item);
 			}
 		}

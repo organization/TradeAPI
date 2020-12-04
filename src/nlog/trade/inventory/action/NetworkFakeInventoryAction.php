@@ -20,26 +20,25 @@
 
 namespace nlog\trade\inventory\action;
 
-
 use nlog\trade\inventory\FakeInventory;
 use pocketmine\inventory\transaction\action\InventoryAction;
 use pocketmine\inventory\transaction\action\SlotChangeAction;
-use pocketmine\network\mcpe\protocol\types\inventory\NetworkInventoryAction;
-use pocketmine\player\Player;
+use pocketmine\network\mcpe\protocol\types\NetworkInventoryAction;
+use pocketmine\Player;
 use UnexpectedValueException;
 
-class NetworkFakeInventoryAction extends NetworkInventoryAction {
-	public function createInventoryAction(Player $player): ?InventoryAction {
-		if ($this->oldItem->equalsExact($this->newItem)) {
+class NetworkFakeInventoryAction extends NetworkInventoryAction{
+	public function createInventoryAction(Player $player) : ?InventoryAction{
+		if($this->oldItem->equalsExact($this->newItem)){
 			//filter out useless noise in 1.13
 			return null;
 		}
-		switch ($this->sourceType) {
+		switch($this->sourceType){
 			case self::SOURCE_TODO:
-				if ($this->windowId === -30) { //fake inventory -> real inventory (slot 50)
+				if($this->windowId === -30){ //fake inventory -> real inventory (slot 50)
 					return new SlotChangeAction(new FakeInventory($this->oldItem), $this->inventorySlot, $this->oldItem, $this->newItem);
 				}
-				if ($this->windowId === -31) { //real item -> fake inventory
+				if($this->windowId === -31){ //real item -> fake inventory
 					return new SlotChangeAction(new FakeInventory($this->oldItem), $this->inventorySlot, $this->oldItem, $this->newItem);
 				}
 				throw new UnexpectedValueException("No open container with window ID $this->windowId");

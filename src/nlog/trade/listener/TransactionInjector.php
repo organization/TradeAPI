@@ -20,31 +20,29 @@
 
 namespace nlog\trade\listener;
 
-
 use nlog\trade\inventory\action\NetworkFakeInventoryAction;
 use nlog\trade\inventory\action\NetworkTradeInventoryAction;
 use nlog\trade\TradeAPI;
 use pocketmine\event\Listener;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
-use pocketmine\network\mcpe\protocol\types\inventory\ContainerIds;
-use pocketmine\network\mcpe\protocol\types\inventory\NetworkInventoryAction;
-use pocketmine\network\mcpe\protocol\types\inventory\NormalTransactionData;
+use pocketmine\network\mcpe\protocol\types\ContainerIds;
+use pocketmine\network\mcpe\protocol\types\NetworkInventoryAction;
 
-class TransactionInjector implements Listener {
+class TransactionInjector implements Listener{
 
-	public function onDataPacketReceive(DataPacketReceiveEvent $event) {
-		if (($pk = $event->getPacket()) instanceof InventoryTransactionPacket) {
+	public function onDataPacketReceive(DataPacketReceiveEvent $event){
+		if(($pk = $event->getPacket()) instanceof InventoryTransactionPacket){
 			/** @var InventoryTransactionPacket $pk */
 			$res = [];
 			$c = false;
-			foreach ($pk->trData->getActions() as $_ => $action) {
+			foreach($pk->actions as $_ => $action){
 				$after = $action;
-				if ($action->windowId === ContainerIds::UI && ($action->inventorySlot === 4 || $action->inventorySlot === 5 || $action->inventorySlot === 50)) {
-					if ($action->inventorySlot === 50) {
-						if (TradeAPI::getInstance()->isTrading($event->getOrigin()->getPlayer())) {
+				if($action->windowId === ContainerIds::UI && ($action->inventorySlot === 4 || $action->inventorySlot === 5 || $action->inventorySlot === 50)){
+					if($action->inventorySlot === 50){
+						if(TradeAPI::getInstance()->isTrading($event->getPlayer())){
 							$action->inventorySlot = 51;
-						} else {
+						}else{
 							$res[] = $after;
 							continue;
 						}
@@ -61,7 +59,7 @@ class TransactionInjector implements Listener {
 					$c = true;
 				}
 
-				if ($action->sourceType === NetworkInventoryAction::SOURCE_TODO && ($action->windowId === -31 || $action->windowId === -30)) {
+				if($action->sourceType === NetworkInventoryAction::SOURCE_TODO && ($action->windowId === -31 || $action->windowId === -30)){
 					$after = new NetworkFakeInventoryAction();
 					$after->inventorySlot = $action->inventorySlot;
 					$after->windowId = $action->windowId;
@@ -76,8 +74,8 @@ class TransactionInjector implements Listener {
 				$res[] = $after;
 			}
 
-			if ($c) {
-				$pk->trData = NormalTransactionData::new($res);
+			if($c){
+				$pk->actions = $res;
 			}
 		}
 	}

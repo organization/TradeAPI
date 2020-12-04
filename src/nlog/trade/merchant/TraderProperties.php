@@ -20,10 +20,9 @@
 
 namespace nlog\trade\merchant;
 
-
 use pocketmine\entity\Entity;
 
-class TraderProperties {
+class TraderProperties{
 
 	/** @var Entity|null */
 	public $entity = null; //if it is null, plugin will send fake actor to player.

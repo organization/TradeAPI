@@ -20,23 +20,30 @@
 
 namespace nlog\trade\inventory;
 
-
 use pocketmine\inventory\BaseInventory;
-use pocketmine\player\Player;
+use pocketmine\Player;
 
-class PlayerTradeInventory extends BaseInventory {
+class PlayerTradeInventory extends BaseInventory{
 	/** @var Player */
 	protected $holder;
 
-	public function __construct(Player $holder) {
+	public function __construct(Player $holder){
 		$this->holder = $holder;
-		parent::__construct(3);
+		parent::__construct([], 3);
 	}
 
 	/**
 	 * @return Player
 	 */
-	public function getHolder() {
+	public function getHolder(){
 		return $this->holder;
+	}
+
+	public function getName() : string{
+		return "PlayerTradeInventory";
+	}
+
+	public function getDefaultSize() : int{
+		return 3;
 	}
 }
