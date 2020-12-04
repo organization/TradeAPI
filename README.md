@@ -7,7 +7,7 @@
 
 ## LICENSE
 * 이 플러그인 또는 플러그인 코드를 사용하는 경우 AGPL 라이선스에 동의하는 것으로 간주합니다.
-
+* By using this plugin or plugin code, you agree to the AGPL license.
 ```
 TradeAPI, simple to provide Trade UI V2.
 Copyright (C) 2020  Organic (nnnlog)

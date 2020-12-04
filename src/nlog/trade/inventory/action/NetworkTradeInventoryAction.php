@@ -20,34 +20,33 @@
 
 namespace nlog\trade\inventory\action;
 
-
 use nlog\trade\TradeAPI;
 use pocketmine\inventory\transaction\action\InventoryAction;
 use pocketmine\inventory\transaction\action\SlotChangeAction;
-use pocketmine\network\mcpe\protocol\types\inventory\ContainerIds;
-use pocketmine\network\mcpe\protocol\types\inventory\NetworkInventoryAction;
-use pocketmine\player\Player;
+use pocketmine\network\mcpe\protocol\types\ContainerIds;
+use pocketmine\network\mcpe\protocol\types\NetworkInventoryAction;
+use pocketmine\Player;
 use UnexpectedValueException;
 
-class NetworkTradeInventoryAction extends NetworkInventoryAction {
-	public function createInventoryAction(Player $player): ?InventoryAction {
-		if ($this->oldItem->equalsExact($this->newItem)) {
+class NetworkTradeInventoryAction extends NetworkInventoryAction{
+	public function createInventoryAction(Player $player) : ?InventoryAction{
+		if($this->oldItem->equalsExact($this->newItem)){
 			//filter out useless noise in 1.13
 			return null;
 		}
-		switch ($this->sourceType) {
+		switch($this->sourceType){
 			case self::SOURCE_CONTAINER:
 				$window = null;
 				$slot = $this->inventorySlot;
-				if ($this->windowId === ContainerIds::UI and ($slot === 4 || $slot === 5)) {
+				if($this->windowId === ContainerIds::UI and ($slot === 4 || $slot === 5)){
 					$window = TradeAPI::getInventory($player);
 					$slot -= 4;
 				}
-				if ($this->windowId === ContainerIds::UI and $slot === 51) {
+				if($this->windowId === ContainerIds::UI and $slot === 51){
 					$window = TradeAPI::getInventory($player);
 					$slot -= 49;
 				}
-				if ($window !== null) {
+				if($window !== null){
 					return new SlotChangeAction($window, $slot, $this->oldItem, $this->newItem);
 				}
 

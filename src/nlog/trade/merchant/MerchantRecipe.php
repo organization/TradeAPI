@@ -20,35 +20,34 @@
 
 namespace nlog\trade\merchant;
 
-
 use pocketmine\item\Item;
 use pocketmine\nbt\tag\CompoundTag;
 
-class MerchantRecipe {
+class MerchantRecipe{
 
 	/**
-	 * @param  CompoundTag          $tag
-	 * @param  string               $k
-	 * @param  Item|int|float|null  $v
-	 * @param  int|float            $minValue
+	 * @param CompoundTag         $tag
+	 * @param string              $k
+	 * @param Item|int|float|null $v
+	 * @param int|float           $minValue
 	 *
 	 * @return CompoundTag
 	 */
-	private static function add(CompoundTag $tag, string $k, $v, $minValue = 0): void {
-		if (is_int($v)) {
-			if ($v > $minValue) {
+	private static function add(CompoundTag $tag, string $k, $v, $minValue = 0) : void{
+		if(is_int($v)){
+			if($v > $minValue){
 				$tag->setInt($k, $v);
 			}
 		}
 
-		if (is_float($v)) {
-			if ($v > $minValue) {
+		if(is_float($v)){
+			if($v > $minValue){
 				$tag->setInt($k, $v);
 			}
 		}
 
-		if ($v instanceof Item) {
-			$tag->setTag($k, $v->nbtSerialize(-1));
+		if($v instanceof Item){
+			$tag->setTag($v->nbtSerialize(-1, $k));
 		}
 	}
 
@@ -88,7 +87,7 @@ class MerchantRecipe {
 	/** @var float */
 	private $priceMultiplierA = -1.0, $priceMultiplierB = -1.0; //TODO
 
-	public function __construct(Item $buyA, Item $sell, ?Item $buyB = null, int $tier = -1, int $buyCountA = -1, int $buyCountB = -1, int $maxUses = 999) {
+	public function __construct(Item $buyA, Item $sell, ?Item $buyB = null, int $tier = -1, int $buyCountA = -1, int $buyCountB = -1, int $maxUses = 999){
 		$this->buyA = $buyA;
 		$this->sell = $sell;
 
@@ -100,56 +99,56 @@ class MerchantRecipe {
 	}
 
 	/**
-	 * @param  Item  $buyA
+	 * @param Item $buyA
 	 */
-	public function setBuyA(Item $buyA): void {
+	public function setBuyA(Item $buyA) : void{
 		$this->buyA = $buyA;
 	}
 
 	/**
-	 * @param  Item|null  $buyB
+	 * @param Item|null $buyB
 	 */
-	public function setBuyB(?Item $buyB): void {
+	public function setBuyB(?Item $buyB) : void{
 		$this->buyB = $buyB;
 	}
 
 	/**
-	 * @param  Item  $sell
+	 * @param Item $sell
 	 */
-	public function setSell(Item $sell): void {
+	public function setSell(Item $sell) : void{
 		$this->sell = $sell;
 	}
 
 	/**
-	 * @param  int  $tier
+	 * @param int $tier
 	 */
-	public function setTier(int $tier): void {
+	public function setTier(int $tier) : void{
 		$this->tier = $tier;
 	}
 
 	/**
-	 * @param  int  $buyCountA
+	 * @param int $buyCountA
 	 */
-	public function setBuyCountA(int $buyCountA): void {
+	public function setBuyCountA(int $buyCountA) : void{
 		$this->buyCountA = $buyCountA;
 	}
 
 	/**
-	 * @param  int  $buyCountB
+	 * @param int $buyCountB
 	 */
-	public function setBuyCountB(int $buyCountB): void {
+	public function setBuyCountB(int $buyCountB) : void{
 		$this->buyCountB = $buyCountB;
 	}
 
 	/**
-	 * @param  int  $maxUses
+	 * @param int $maxUses
 	 */
-	public function setMaxUses(int $maxUses): void {
+	public function setMaxUses(int $maxUses) : void{
 		$this->maxUses = $maxUses;
 	}
 
-	public function toNBT(): CompoundTag {
-		$tag = CompoundTag::create();
+	public function toNBT() : CompoundTag{
+		$tag = new CompoundTag();
 
 		self::add($tag, "buyA", $this->buyA);
 		self::add($tag, "sell", $this->sell);

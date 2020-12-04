@@ -20,7 +20,6 @@
 
 namespace nlog\trade\listener;
 
-
 use nlog\trade\TradeAPI;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\Listener;
@@ -32,41 +31,41 @@ use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\network\mcpe\protocol\ActorEventPacket;
 use pocketmine\network\mcpe\protocol\ContainerClosePacket;
 
-class InventoryListener implements Listener {
+class InventoryListener implements Listener{
 
 	/** @var TradeAPI */
 	private $plugin;
 
-	public function __construct(TradeAPI $plugin) {
+	public function __construct(TradeAPI $plugin){
 		$this->plugin = $plugin;
 	}
 
-	public function onDataPacketReceive(DataPacketReceiveEvent $event) {
+	public function onDataPacketReceive(DataPacketReceiveEvent $event){
 		$pk = $event->getPacket();
-		if ($pk instanceof ContainerClosePacket && $pk->windowId === 255) {
-			$this->plugin->closeWindow($event->getOrigin()->getPlayer(), false);
-		} elseif ($pk instanceof ActorEventPacket && $pk->event !== ActorEventPacket::COMPLETE_TRADE) {
-			$this->plugin->doCloseInventory($this->plugin->getInventory($event->getOrigin()->getPlayer()));
+		if($pk instanceof ContainerClosePacket && $pk->windowId === 255){
+			$this->plugin->closeWindow($event->getPlayer(), false);
+		}elseif($pk instanceof ActorEventPacket && $pk->event !== ActorEventPacket::COMPLETE_TRADE){
+			$this->plugin->doCloseInventory($this->plugin->getInventory($event->getPlayer()));
 		}
 	}
 
-	public function onPlayerCommandPreprocess(PlayerCommandPreprocessEvent $event) {
+	public function onPlayerCommandPreprocess(PlayerCommandPreprocessEvent $event){
 		$this->plugin->doCloseInventory($this->plugin->getInventory($event->getPlayer()));
 	}
 
-	public function onBlockBreak(BlockBreakEvent $event) {
+	public function onBlockBreak(BlockBreakEvent $event){
 		$this->plugin->doCloseInventory($this->plugin->getInventory($event->getPlayer()));
 	}
 
-	public function onPlayerDeath(PlayerDeathEvent $event) {
+	public function onPlayerDeath(PlayerDeathEvent $event){
 		$this->plugin->doCloseInventory($this->plugin->getInventory($event->getPlayer()));
 	}
 
-	public function onPlayerJoin(PlayerJoinEvent $event) {
+	public function onPlayerJoin(PlayerJoinEvent $event){
 		$this->plugin->addInventory($event->getPlayer());
 	}
 
-	public function onPlayerQuit(PlayerQuitEvent $event) {
+	public function onPlayerQuit(PlayerQuitEvent $event){
 		$this->plugin->doCloseInventory($this->plugin->getInventory($event->getPlayer()));
 		$this->plugin->removeInventory($event->getPlayer());
 	}
